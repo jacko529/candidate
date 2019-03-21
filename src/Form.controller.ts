@@ -1,7 +1,6 @@
+import { PassThrough } from 'stream';
 // tslint:disable-next-line:import-name
 import axios from 'axios';
-import fs, { appendFile } from 'fs';
-import request from 'request';
 // tslint:disable-next-line:import-name
 import FormData from 'form-data';
 import { RECRUITEE_KEY } from './config';
@@ -33,11 +32,17 @@ router.post('/developer', store.extractResume('resume'), async (req: Request, re
 
   try {
 
+    // Convert buffer into a file stream that can be sent to recruitee.
+    const cvStream = new PassThrough();
+    cvStream.end(req.file.buffer);
+
+    // Generate form data to be sent.
     const applicationForm = new FormData();
     applicationForm.append('candidate[name]', candidate.name);
-    applicationForm.append('candidate[cv]', req.file.buffer, {
-      filepath: req.file.path,
+    applicationForm.append('candidate[cv]', cvStream, {
+      filename: req.file.originalname,
       contentType: req.file.mimetype,
+      knownLength: req.file.size,
     });
 
     // @ts-ignore
@@ -45,9 +50,9 @@ router.post('/developer', store.extractResume('resume'), async (req: Request, re
       headers: applicationForm.getHeaders(),
     });
 
-    res.status(200).send(response);
+    res.status(response.status).send(response.data);
   } catch (err) {
-    res.status(err.status || 400).send(err.message || 'Couldn\'t process your request.');
+    res.status(400).send(err.message || 'Couldn\'t process your request.');
   }
 });
 

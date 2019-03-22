@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 
 import { PORT } from './config';
 
@@ -7,9 +6,6 @@ import { PORT } from './config';
 import formRouter from './Form.controller';
 
 const app: express.Application = express();
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
 
 app.use('/apply', formRouter);
 

@@ -1,39 +1,48 @@
 import { PassThrough } from 'stream';
+import multer from 'multer';
 // tslint:disable-next-line:import-name
 import axios from 'axios';
+
 // tslint:disable-next-line:import-name
 import FormData from 'form-data';
-import { RECRUITEE_KEY } from './config';
+import { RECRUITEE_KEY, OFFERS } from './config';
 
 import { Router, Request, Response } from 'express';
-import Resume from './Resume';
 
 const router = Router();
-const store = new Resume();
 
+// Initialise memory storage to receive resumes from form.
+const store = multer({ storage: multer.memoryStorage() });
+
+// Set constant for base candidate endpoint url.
 const baseCandidateUrl = 'https://api.recruitee.com/c/30789/candidates/';
+
+// Set authorization of axios instance.
 const recruitee = axios.create({
   headers: {
     Authorization: `Bearer ${RECRUITEE_KEY}`,
   },
 });
 
-const offerIds = {
-  marketing: 252913,
-  designer: 249219,
-  developer: 252909,
-};
 
 /**
-  Data received from a form with inputs:
-  name: string
-  resume: file
+  Take form data from apply page and create candidate.
+  Params:
+    position: string - references the offer id of the position.
+  Form data:
+    name: string - name of the candidate.
+    email: string - email of the candidate.
+    link: string - link to relevant projects the candidate worked on (optional).
+    message: string - cover letter (optional).
+    resume: file - candidate resume.
 **/
-router.post('/:position', store.extractResume('resume'), async (req: Request, res: Response) => {
+router.post('/:position', store.single('resume'), async (req: Request, res: Response) => {
 
   try {
 
-    if (!offerIds.hasOwnProperty(req.params.position)) {
+    const position = req.params.position;
+
+    if (!OFFERS.hasOwnProperty(position)) {
       throw Error('No such position available.');
     }
 
@@ -57,6 +66,10 @@ router.post('/:position', store.extractResume('resume'), async (req: Request, re
 
     // Generate form data to be sent.
     const applicationForm = new FormData();
+
+    // @ts-ignore
+    applicationForm.append('offer_id', OFFERS[position]);
+
     applicationForm.append('candidate[name]', name);
     applicationForm.append('candidate[emails][]', email);
 

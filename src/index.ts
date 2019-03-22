@@ -1,3 +1,4 @@
+import https from 'https';
 import express from 'express';
 
 import cors from 'cors';
@@ -8,11 +9,13 @@ import { PORT } from './config';
 import formRouter from './Form.controller';
 
 const app: express.Application = express();
+// @ts-ignore
+const server: https.Server = https.createServer(app);
 
 app.use('/apply', cors());
 app.use('/apply', formRouter);
 
-app.listen(PORT, (err: Error) => {
+server.listen(PORT, (err: Error) => {
   if (err) {
     throw err;
   }

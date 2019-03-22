@@ -24,7 +24,6 @@ const recruitee = axios.create({
   },
 });
 
-
 /**
   Take form data from apply page and create candidate.
   Params:

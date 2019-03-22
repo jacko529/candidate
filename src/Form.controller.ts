@@ -18,19 +18,38 @@ const recruitee = axios.create({
   },
 });
 
+const offerIds = {
+  marketing: 252913,
+  designer: 249219,
+  developer: 252909,
+};
+
 /**
   Data received from a form with inputs:
-  firstName: string
-  lastName: string
+  name: string
   resume: file
 **/
-router.post('/developer', store.extractResume('resume'), async (req: Request, res: Response) => {
-
-  const candidate = {
-    name: `${req.body.firstName} ${req.body.lastName}`,
-  };
+router.post('/:position', store.extractResume('resume'), async (req: Request, res: Response) => {
 
   try {
+
+    if (!offerIds.hasOwnProperty(req.params.position)) {
+      throw Error('No such position available.');
+    }
+
+    const { name, email, link, message } = req.body;
+
+    if (!!!name || name === '') {
+      throw Error('Name is required.');
+    }
+
+    if (!!!email || email === '') {
+      throw Error('Email is required.');
+    }
+
+    if (!!!req.file) {
+      throw Error('Resume is required.');
+    }
 
     // Convert buffer into a file stream that can be sent to recruitee.
     const cvStream = new PassThrough();
@@ -38,7 +57,17 @@ router.post('/developer', store.extractResume('resume'), async (req: Request, re
 
     // Generate form data to be sent.
     const applicationForm = new FormData();
-    applicationForm.append('candidate[name]', candidate.name);
+    applicationForm.append('candidate[name]', name);
+    applicationForm.append('candidate[emails][]', email);
+
+    if (!!link) {
+      applicationForm.append('candidate[links][]', link);
+    }
+
+    if (!!message) {
+      applicationForm.append('candidate[cover_letter]', message);
+    }
+
     applicationForm.append('candidate[cv]', cvStream, {
       filename: req.file.originalname,
       contentType: req.file.mimetype,
@@ -49,6 +78,9 @@ router.post('/developer', store.extractResume('resume'), async (req: Request, re
     const response = await recruitee.post(baseCandidateUrl, applicationForm, {
       headers: applicationForm.getHeaders(),
     });
+
+    // Uncomment when testing to avoid cluttering the candidates pool.
+    // await recruitee.delete(`${baseCandidateUrl}${response.data.candidate.id}`);
 
     res.status(response.status).send(response.data);
   } catch (err) {

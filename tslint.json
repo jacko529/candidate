@@ -6,7 +6,8 @@
     "rules": {
       "no-console": {
         "severity": "warning"
-      }
+      },
+      "import-name": false
     },
     "jsRules": {
       "no-console": {

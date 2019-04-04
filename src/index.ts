@@ -1,5 +1,7 @@
 import express from 'express';
 
+import cors from 'cors';
+
 import { PORT } from './config';
 
 // tslint:disable-next-line:import-name
@@ -7,6 +9,7 @@ import formRouter from './Form.controller';
 
 const app: express.Application = express();
 
+app.use('/apply', cors());
 app.use('/apply', formRouter);
 
 app.listen(PORT, (err: Error) => {

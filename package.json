@@ -9,13 +9,8 @@
     "npm": "^6"
   },
   "scripts": {
-<<<<<<< HEAD
     "prepare": "npm run gcp-build",
     "start": "node ./dist/index.js",
-=======
-    "prepare": "npm run build",
-    "start": "node dist/index.js",
->>>>>>> 72d6861850f1f9a07a641abee9765672ec6dbbd4
     "dev": "nodemon --config nodemon.json",
     "test": "jest",
     "build": "tsc -p .",
